@@ -1,10 +1,9 @@
-require('pg')
 require_relative('../db/sql_runner')
-require_relative('../artist')
+require_relative('artist')
 
 class Album
 
-  attr_accessor :title, :genre
+  attr_accessor :title, :genre, :artist_id
   attr_reader :id
 
   def initialize( options )
@@ -29,7 +28,7 @@ class Album
     @id = SqlRunner.run(sql, values)[0]["id"].to_i
   end
 
-  def self.all()
+  def all()
     sql = "SELECT * FROM albums"
     all_albums = SqlRunner.run(sql)
     return all_albums.map { |album| Album.new(album) }
@@ -40,9 +39,16 @@ class Album
    SqlRunner.run(sql)
    end
 
+   def find_albums_by_artist(artist)
+     sql = "SELECT * FROM albums WHERE artist_id = $1"
+     values = [artist.id]
+     results = SqlRunner.run(sql, values)
+     return results.map{|album| Album.new(album)}
+   end
+
   def update()
-     sql = "UPDATE albums SET title WHERE id = $2"
-     values = [@title, values]
+     sql = "UPDATE albums SET title = $1 WHERE id = $2"
+     values = [@title, @id]
      SqlRunner.run(sql, values)
    end
 
@@ -52,12 +58,12 @@ class Album
    SqlRunner.run(sql, values)
  end
 
-#  def artist()
-#   sql = "SELECT * FROM artists WHERE id = $2"
-#   values = [@artist_id]
-#   results = SqlRunner.run(sql, values)
-#   return results.map{|artist| Astist.new(artist)}
-# end
+ def find_album_by_id(id)
+  sql = "SELECT * FROM albums WHERE id = $1"
+  values = [id]
+  results = SqlRunner.run(sql, values)
+  return results.map{|album| Album.new(album)}
+end
 
 
 end
